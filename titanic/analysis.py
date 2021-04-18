@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 import sys
 
 df = pd.read_csv('/home/runner/kaggle/titanic/train.csv')
@@ -75,6 +76,7 @@ y_test = test_arr[:,0]
 x_train = train_arr[:,1:]
 x_test = test_arr[:,1:]
 
+#linear regressor
 regressor = LinearRegression()
 regressor.fit(x_train, y_train)
 
@@ -102,3 +104,34 @@ def get_accuracy(predictions, actual):
 print('used features: ',features_to_use)
 print('training accuracy: ',get_accuracy(y_train_predictions, y_train))
 print('testing accuracy: ',get_accuracy(y_test_predictions, y_test))
+
+
+
+#Logistic Regressor
+regressor = LogisticRegression(max_iter=1000)
+regressor.fit(x_train, y_train)
+
+coefficients = {}
+features_to_use = list(df_train.columns[1:])
+feature_coefficients = list(regressor.coef_)[0]
+
+
+for n in range(len(features_to_use)):
+  column = features_to_use[n]
+  coefficient = feature_coefficients[n]
+  coefficients[column] = coefficient
+
+y_test_predictions = regressor.predict(x_test)
+y_train_predictions = regressor.predict(x_train)
+
+y_test_predictions = [convert_prediction_to_survival_val(n) for n in y_test_predictions]
+y_train_predictions = [convert_prediction_to_survival_val(n) for n in y_train_predictions]
+
+
+print("\n", "features:", features_to_use, "\n")
+print("training accuracy:", round(get_accuracy(y_train_predictions, y_train), 4))
+print("testing accuracy:", round(get_accuracy(y_test_predictions, y_test), 4), "\n")
+
+coefficients['constant'] = list(regressor.intercept_)[0]
+print({k: round(v, 4) for k, v in coefficients.items()})
+
